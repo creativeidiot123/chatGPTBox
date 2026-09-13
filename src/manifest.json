@@ -94,6 +94,13 @@
       },
       "description": "Summarize this page"
     },
+    "sendPageContextToChatGPT": {
+      "suggested_key": {
+        "default": "Alt+Shift+C",
+        "mac": "Alt+Shift+C"
+      },
+      "description": "Send this page context to normal ChatGPT"
+    },
     "openConversationPage": {
       "suggested_key": {
         "default": "Ctrl+Shift+H",

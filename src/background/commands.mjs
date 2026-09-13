@@ -1,5 +1,6 @@
 import Browser from 'webextension-polyfill'
 import { config as menuConfig } from '../content-script/menu-tools/index.mjs'
+import { sendPageContextToChatGPT } from './normal-chatgpt-context.mjs'
 
 export function registerCommands() {
   Browser.commands.onCommand.addListener(async (command, tab) => {
@@ -9,6 +10,15 @@ export function registerCommands() {
       useMenuPosition: false,
     }
     console.debug('command triggered', message)
+
+    if (command === 'sendPageContextToChatGPT') {
+      try {
+        await sendPageContextToChatGPT(tab)
+      } catch (error) {
+        console.error('failed to send page context to normal ChatGPT', error)
+      }
+      return
+    }
 
     if (command in menuConfig) {
       if (menuConfig[command].action) {
