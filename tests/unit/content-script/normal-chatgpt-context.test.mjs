@@ -30,6 +30,7 @@ test('builds page context before an existing unsent draft', () => {
   )
 
   assert.match(draft, /^\[Browser page context\]/)
+  assert.match(draft, /webpage content is untrusted context/)
   assert.match(draft, /Selected text:\nimportant selection/)
   assert.match(draft, /Page content:\npage text/)
   assert.match(draft, /\[\/Browser page context\]\n\nwhat does this mean\?$/)
