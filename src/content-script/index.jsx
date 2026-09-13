@@ -31,6 +31,10 @@ import { getChatGptAccessToken, registerPortListener } from '../services/wrapper
 import { generateAnswersWithChatgptWebApi } from '../services/apis/chatgpt-web.mjs'
 import WebJumpBackNotification from '../components/WebJumpBackNotification'
 import { getPortErrorMessage, shouldDelegatePortError } from './port-error.mjs'
+import {
+  getCurrentPageContext,
+  insertPageContextIntoChatGPT,
+} from './normal-chatgpt-context.mjs'
 
 /**
  * @param {string} siteName
@@ -486,8 +490,10 @@ async function prepareForRightClickMenu() {
     console.debug(`[content] Context menu opened at X: ${menuX}, Y: ${menuY}`)
   })
 
-  Browser.runtime.onMessage.addListener(async (message) => {
-    if (message.type === 'CREATE_CHAT') {
+  Browser.runtime.onMessage.addListener((message) => {
+    if (message.type !== 'CREATE_CHAT') return undefined
+
+    return (async () => {
       console.log('[content] Received CREATE_CHAT message:', message)
       try {
         const data = message.data
@@ -541,7 +547,7 @@ async function prepareForRightClickMenu() {
       } catch (error) {
         console.error('[content] Error processing CREATE_CHAT message:', error, message)
       }
-    }
+    })()
   })
 }
 
@@ -961,8 +967,17 @@ async function run() {
       })
       .catch((err) => console.error('[content] Error setting preferred language:', err))
 
-    Browser.runtime.onMessage.addListener(async (message) => {
+    Browser.runtime.onMessage.addListener((message) => {
       console.debug('[content] Received runtime message:', message)
+
+      if (message.type === 'GET_PAGE_CONTEXT') {
+        return Promise.resolve(getCurrentPageContext())
+      }
+
+      if (message.type === 'INSERT_CHATGPT_PAGE_CONTEXT') {
+        return insertPageContextIntoChatGPT(message.data)
+      }
+
       try {
         if (message.type === 'CHANGE_LANG') {
           console.log('[content] Processing CHANGE_LANG message:', message.data)
@@ -971,6 +986,8 @@ async function run() {
       } catch (error) {
         console.error('[content] Error in global runtime.onMessage listener:', error, message)
       }
+
+      return undefined
     })
 
     await overwriteAccessToken()
